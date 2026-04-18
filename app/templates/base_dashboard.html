@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PCB Order System{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🔌 PCB Order System</div>
+        <div class="nav-links" id="navLinks">
+            <a href="/login" id="navLogin">Выйти</a>
+            <span class="user-info" id="navUserInfo" style="display:none;"></span>
+            <button onclick="logout()" class="btn-logout" id="navLogout" style="display:none;">🚪 Выйти</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    const userEmail = localStorage.getItem('user_email');
+    
+    if (token && userEmail) {
+        document.getElementById('navLogin').style.display = 'none';
+        document.getElementById('navRegister').style.display = 'none';
+        document.getElementById('navUserInfo').style.display = 'inline';
+        document.getElementById('navUserInfo').textContent = '👤 ' + userEmail;
+        document.getElementById('navLogout').style.display = 'inline-block';
+    }
+});
+
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (e) {}
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_email');
+    window.location.href = '/login';
+}
+
+
+function showNotification(message, type = 'info') {
+    const el = document.getElementById('notification');
+    if (el) {
+        el.textContent = message;
+        el.className = `notification ${type} show`;
+        setTimeout(() => el.classList.remove('show'), 3000);
+    }
+}
+    </script>
+
+    <script src="/static/js/app.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
