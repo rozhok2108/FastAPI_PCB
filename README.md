@@ -22,60 +22,53 @@
 | DevOps | Docker, Docker Compose, pytest |
 
 ## 📁 Структура проекта
+```bash
 .
-├── app
-│   ├── auth.py
-│   ├── config.py
-│   ├── database.py
-│   ├── dependencies.py
+├── app/
+│   ├── auth.py                 # Логика аутентификации и авторизации
+│   ├── config.py               # Настройки приложения
+│   ├── database.py             # Подключение к БД
+│   ├── dependencies.py         # Зависимости FastAPI
 │   ├── __init__.py
-│   ├── main.py
-│   ├── models.py
-│   ├── routers
-│   │   ├── auth.py
-│   │   ├── orders.py
-│   │   ├── services.py
-│   │   └── users.py
-│   ├── schemas.py
-│   ├── static
-│   │   ├── css
-│   │   │   └── style.css
-│   │   ├── images
-│   │   │   ├── smd.png
-│   │   │   ├── контроль_качества.jpg
-│   │   │   ├── лаборатория.webp
-│   │   │   └── производство_печатных плат.jpg
-│   │   └── js
-│   │       └── app.js
-│   ├── templates
+│   ├── main.py                 # Точка входа приложения
+│   ├── models.py               # SQLAlchemy модели
+│   ├── schemas.py              # Pydantic схемы
+│   ├── routers/
+│   │   ├── auth.py             # Роуты аутентификации
+│   │   ├── orders.py           # Роуты заказов
+│   │   ├── services.py         # Роуты услуг
+│   │   └── users.py            # Роуты пользователей
+│   ├── static/
+│   │   ├── css/style.css       # Стили
+│   │   ├── images/             # Изображения интерфейса
+│   │   └── js/app.js           # Клиентская логика
+│   ├── templates/              # Jinja2 HTML-шаблоны
 │   │   ├── base.html
-│   │   ├── dashboard_admin.html
-│   │   ├── dashboard_client.html
-│   │   ├── dashboard_engineer.html
-│   │   ├── dashboard_manager.html
-│   │   ├── dashboard_redirect.html
 │   │   ├── login.html
-│   │   └── register.html
-│   ├── tests
-│   │   ├── conftest.py
-│   │   └── test_api.py
-│   └── utils
-│       ├── init_admin.py
-│       ├── logic.py
-│       └── notifications.py
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── smd.png
+│   │   ├── register.html
+│   │   └── dashboard_*.html    # Дашборды для разных ролей
+│   ├── tests/
+│   │   ├── conftest.py         # Фикстуры pytest
+│   │   └── test_api.py         # API-тесты
+│   └── utils/
+│       ├── init_admin.py       # Инициализация админа
+│       ├── logic.py            # Бизнес-логика
+│       └── notifications.py    # Система уведомлений
+├── docker-compose.yml          # Оркестрация контейнеров
+├── Dockerfile                  # Образ приложения
+├── requirements.txt            # Зависимости Python
+├── smd.png                     # Изображения для README
 ├── контроль_качества.jpg
 ├── лаборатория.webp
-├── Презентация_FASTAPI.pptx
-└── производство_печатных плат.jpg
-
+├── производство_печатных_плат.jpg
+└── Презентация_FASTAPI.pptx
 10 directories, 39 files
+```
                                      
 Запуск через Docker
+```bash
 docker-compose up -d --build
+```
 
 Приложение будет доступно по адресу: http://localhost:8000
 📖 Документация API
@@ -84,4 +77,6 @@ Swagger UI: http://localhost:8000/docs
 ReDoc: http://localhost:8000/redoc
 
 🧪 Тестирование
+```bash
 pytest app/tests/ -v
+```
