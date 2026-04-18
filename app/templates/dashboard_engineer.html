@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Кабинет инженера{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>🔧 Мои заказы</h1>
+    
+    <div class="dashboard-actions">
+        <button onclick="loadAssignedOrders()" class="btn-secondary">🔄 Обновить</button>
+    </div>
+    
+    <div id="ordersContainer" class="orders-grid">
+        <!-- Заказы загружаются через JS -->
+    </div>
+</div>
+
+<!-- Модальное окно изменения статуса -->
+<div id="statusModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('statusModal')">&times;</span>
+        <h2>📝 Изменить статус заказа</h2>
+        <form id="statusForm">
+            <input type="hidden" id="orderId">
+            <div class="form-group">
+                <label for="status">Новый статус</label>
+                <select id="status" name="status" required>
+                    <option value="accepted">✅ Принят</option>
+                    <option value="in_progress">🔧 В работе</option>
+                    <option value="ready">✨ Готов для отправки</option>
+                    <option value="shipped">📦 Отправлен</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Обновить статус</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Проверка валидности токена при загрузке
+async function validateToken() {
+    try {
+        const response = await fetch('/api/auth/me', {
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_email');
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_email');
+        window.location.href = '/login';
+    }
+}
+
+// Вызываем проверку сразу
+validateToken();
+
+async function loadAssignedOrders() {
+    try {
+        const response = await fetch('/api/orders/engineer/assigned', {
+            credentials: 'include'
+        });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const myOrders = await response.json();
+        renderOrders(myOrders);
+    } catch (error) {
+        showNotification('Ошибка загрузки заказов', 'error');
+    }
+}
+
+function renderOrders(orders) {
+    const container = document.getElementById('ordersContainer');
+    
+    if (orders.length === 0) {
+        container.innerHTML = '<p class="empty-state">Нет назначенных заказов</p>';
+        return;
+    }
+    
+    container.innerHTML = orders.map(order => `
+        <div class="order-card status-${order.status}">
+            <div class="order-header">
+                <h3>Заказ #${order.id}</h3>
+                <span class="status-badge">${translateStatus(order.status)}</span>
+            </div>
+            <p class="order-description">${order.description}</p>
+            <div class="order-meta">
+                <span>👤 Клиент ID: ${order.client_id}</span>
+                <span>📅 ${new Date(order.created_at).toLocaleDateString()}</span>
+            </div>
+            <button onclick="openStatusModal(${order.id})" class="btn-primary">Изменить статус</button>
+        </div>
+    `).join('');
+}
+
+function openStatusModal(orderId) {
+    document.getElementById('orderId').value = orderId;
+    document.getElementById('statusModal').style.display = 'block';
+}
+
+document.getElementById('statusForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const orderId = document.getElementById('orderId').value;
+    const status = document.getElementById('status').value;
+
+    try {
+        const response = await fetch(`/api/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ status })
+        });
+
+        if (response.ok) {
+            showNotification('Статус обновлен!', 'success');
+            closeModal('statusModal');
+            loadAssignedOrders();
+        } else {
+            const data = await response.json();
+            showNotification(data.detail || 'Ошибка обновления', 'error');
+        }
+    } catch (error) {
+        showNotification('Ошибка подключения', 'error');
+    }
+});
+
+function translateStatus(status) {
+    const statuses = {
+        'new': '🆕 Новый',
+        'accepted': '✅ Принят',
+        'in_progress': '🔧 В работе',
+        'ready': '✨ Готов',
+        'shipped': '📦 Отправлен',
+        'delivered': '✅ Получен клиентом',
+        'cancelled': '❌ Отменен'
+    };
+    return statuses[status] || status;
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+window.addEventListener('load', loadAssignedOrders);
+</script>
+{% endblock %}

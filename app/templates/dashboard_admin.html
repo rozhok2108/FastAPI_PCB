@@ -1,0 +1,688 @@
+{% extends "base.html" %}
+
+{% block title %}Панель администратора{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>⚙️ Панель администратора</h1>
+    
+   
+    <div class="admin-stats">
+        <div class="stat-card">
+            <h3>👥 Пользователи</h3>
+            <p id="usersCount">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>📦 Заказы</h3>
+            <p id="ordersCount">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>🔧 Услуги</h3>
+            <p id="servicesCount">0</p>
+        </div>
+    </div>
+    
+   
+    <section class="admin-section">
+        <h2>👤 Создать нового пользователя</h2>
+        <form id="createUserForm" class="inline-form">
+            <input type="email" id="newUserEmail" placeholder="Email" required>
+            <input type="password" id="newUserPassword" placeholder="Пароль" minlength="6" required>
+            <select id="newUserRole" required>
+                <option value="">Выберите роль</option>
+                <option value="client">👤 Клиент</option>
+                <option value="engineer">🔧 Инженер</option>
+                <option value="manager">👔 Менеджер</option>
+                <option value="admin">👑 Администратор</option>
+            </select>
+            <button type="submit" class="btn-primary">Создать</button>
+        </form>
+    </section>
+    
+    
+    <section class="admin-section">
+        <h2>👥 Все пользователи</h2>
+        <div class="table-controls">
+            <input type="text" id="userSearch" placeholder="🔍 Поиск по email..." onkeyup="filterUsers()">
+            <button onclick="loadAdminData()" class="btn-secondary">🔄 Обновить</button>
+        </div>
+        <div id="usersContainer" class="data-table-wrapper">
+
+        </div>
+    </section>
+    
+
+    <section class="admin-section">
+        <h2>📦 Управление заказами</h2>
+        <div class="table-controls">
+            <button onclick="showCreateOrderModal()" class="btn-primary">+ Добавить заказ</button>
+            <button onclick="loadAdminData()" class="btn-secondary">🔄 Обновить</button>
+        </div>
+        <div id="ordersContainer" class="data-table-wrapper">
+            <!-- Загружается через JS -->
+        </div>
+    </section>
+
+  
+    <section class="admin-section">
+        <h2>🔧 Управление услугами</h2>
+        <form id="createServiceForm" class="inline-form">
+            <input type="text" id="serviceName" placeholder="Название услуги" required>
+            <input type="number" id="servicePrice" placeholder="Цена (₽)" required>
+            <button type="submit" class="btn-primary">Добавить</button>
+        </form>
+        <div id="servicesContainer" class="services-list" style="margin-top: 1rem;">
+            <!-- Загружается через JS -->
+        </div>
+    </section>
+</div>
+
+<!-- 🔥 Модальное окно редактирования пользователя -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('editUserModal')">&times;</span>
+        <h2>✏️ Редактировать пользователя</h2>
+        <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="editUserEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Роль</label>
+                <select id="editUserRole" required>
+                    <option value="client">👤 Клиент</option>
+                    <option value="engineer">🔧 Инженер</option>
+                    <option value="manager">👔 Менеджер</option>
+                    <option value="admin">👑 Администратор</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Сохранить</button>
+        </form>
+    </div>
+</div>
+
+<!-- 📦 Модальное окно создания заказа -->
+<div id="createOrderModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('createOrderModal')">&times;</span>
+        <h2>📦 Создать заказ</h2>
+        <form id="createOrderForm">
+            <div class="form-group">
+                <label>Клиент</label>
+                <select id="orderClient" required>
+                    <!-- Загружается через JS -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="orderDescription" required placeholder="Описание заказа"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Услуги</label>
+                <div id="orderServicesList" class="services-checkbox">
+                    <!-- Загружается через JS -->
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Создать</button>
+        </form>
+    </div>
+</div>
+
+<!-- 👤 Модальное окно назначения инженера -->
+<div id="assignEngineerModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('assignEngineerModal')">&times;</span>
+        <h2>👤 Назначить инженера</h2>
+        <form id="assignEngineerForm">
+            <input type="hidden" id="assignOrderId">
+            <div class="form-group">
+                <label>Инженер</label>
+                <select id="assignEngineerId" required>
+                    <!-- Загружается через JS -->
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Назначить</button>
+        </form>
+    </div>
+</div>
+
+<!-- 📝 Модальное окно смены статуса -->
+<div id="changeStatusModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('changeStatusModal')">&times;</span>
+        <h2>📝 Изменить статус заказа</h2>
+        <form id="changeStatusForm">
+            <input type="hidden" id="statusOrderId">
+            <div class="form-group">
+                <label>Статус</label>
+                <select id="orderStatus" required>
+                    <option value="new">🆕 Новый</option>
+                    <option value="accepted">✅ Принят</option>
+                    <option value="in_progress">🔧 В работе</option>
+                    <option value="ready">✨ Готов</option>
+                    <option value="shipped">📦 Отправлен</option>
+                    <option value="delivered">✅ Получен клиентом</option>
+                    <option value="cancelled">❌ Отменен</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Сохранить</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const API_BASE = '/api';
+
+// Проверка валидности токена при загрузке
+async function validateToken() {
+    try {
+        const response = await fetch('/api/auth/me', {
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_email');
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_email');
+        window.location.href = '/login';
+    }
+}
+
+// Вызываем проверку сразу
+validateToken();
+
+// 🔥 Авторизованный fetch
+async function authFetch(url, options = {}) {
+    const config = {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        },
+        credentials: 'include'
+    };
+
+    try {
+        const response = await fetch(url, config);
+
+        if (response.status === 401) {
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_email');
+            window.location.href = '/login';
+            return null;
+        }
+        if (response.status === 403) {
+            showNotification('❌ Недостаточно прав', 'error');
+            return null;
+        }
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            console.error(`HTTP ${response.status}:`, error);
+            return null;
+        }
+        return response;
+    } catch (error) {
+        console.error('Network error:', error);
+        showNotification('Ошибка подключения', 'error');
+        return null;
+    }
+}
+
+// 🔥 Создание пользователя
+document.getElementById('createUserForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('newUserEmail').value;
+    const password = document.getElementById('newUserPassword').value;
+    const role = document.getElementById('newUserRole').value;
+    
+    if (!email || !password || !role) {
+        showNotification('Заполните все поля', 'error');
+        return;
+    }
+    
+    console.log('📤 Creating user:', { email, role });
+    
+    const response = await authFetch(`${API_BASE}/users/`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password, role })
+    });
+    
+    if (!response) return;
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+        showNotification(`✅ Пользователь ${email} создан!`, 'success');
+        document.getElementById('createUserForm').reset();
+        loadAdminData();  // Обновить таблицу
+    } else {
+        showNotification(result.detail || 'Ошибка создания', 'error');
+    }
+});
+
+// 🔥 Загрузка данных админ-панели
+async function loadAdminData() {
+    try {
+        // Загрузка пользователей
+        const usersResponse = await authFetch(`${API_BASE}/users/`);
+        if (!usersResponse) return;
+        
+        const users = await usersResponse.json();
+        document.getElementById('usersCount').textContent = users.length;
+        renderUsers(users);
+        
+        // Загрузка заказов
+        const ordersResponse = await authFetch(`${API_BASE}/orders/`);
+        if (ordersResponse) {
+            const orders = await ordersResponse.json();
+            document.getElementById('ordersCount').textContent = orders.length;
+            renderOrders(orders);
+        }
+        
+        // Загрузка услуг (публичный эндпоинт)
+        const servicesResponse = await fetch(`${API_BASE}/services/`);
+        if (servicesResponse.ok) {
+            const services = await servicesResponse.json();
+            document.getElementById('servicesCount').textContent = services.length;
+            renderServices(services);
+        }
+    } catch (error) {
+        console.error('❌ Error loading admin data:', error);
+        showNotification('Ошибка загрузки данных', 'error');
+    }
+}
+
+// 🔥 Рендер таблицы пользователей
+function renderUsers(users) {
+    const container = document.getElementById('usersContainer');
+    if (!container) return;
+    
+    if (users.length === 0) {
+        container.innerHTML = '<p class="empty-state">Нет пользователей</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Создан</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${users.map(user => `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.email}</td>
+                        <td><span class="role-badge role-${user.role}">${translateRole(user.role)}</span></td>
+                        <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : '-'}</td>
+                        <td>
+                            <button onclick="openEditModal(${user.id}, '${user.email}', '${user.role}')" 
+                                    class="btn-primary btn-sm">✏️</button>
+                            <button onclick="deleteUser(${user.id})" 
+                                    class="btn-danger btn-sm"
+                                    ${user.email === 'admin@pcb.com' ? 'disabled title="Нельзя удалить главного админа"' : ''}>
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+// 🔥 Рендер таблицы заказов
+async function renderOrders(orders) {
+    const container = document.getElementById('ordersContainer');
+    if (!container) return;
+
+    if (orders.length === 0) {
+        container.innerHTML = '<p class="empty-state">Нет заказов</p>';
+        return;
+    }
+
+    // Загружаем пользователей для отображения email инженера
+    const usersResponse = await authFetch(`${API_BASE}/users/`);
+    const users = usersResponse ? await usersResponse.json() : [];
+    const engineersMap = {};
+    users.filter(u => u.role === 'engineer').forEach(e => {
+        engineersMap[e.id] = e.email;
+    });
+
+    container.innerHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Клиент</th>
+                    <th>Инженер</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${orders.map(order => `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.client_id}</td>
+                        <td>${order.engineer_id ? (engineersMap[order.engineer_id] || `#${order.engineer_id}`) : '—'}</td>
+                        <td><span class="status-badge">${translateStatus(order.status)}</span></td>
+                        <td>${new Date(order.created_at).toLocaleDateString('ru-RU')}</td>
+                        <td>
+                            <button onclick="openAssignModal(${order.id})" class="btn-primary btn-sm">👤 Назначить</button>
+                            <button onclick="openStatusModal(${order.id}, '${order.status}')" class="btn-secondary btn-sm">📝 Статус</button>
+                            <button onclick="deleteOrder(${order.id})" class="btn-danger btn-sm">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+// 🔥 Удаление пользователя
+async function deleteUser(userId) {
+    if (!confirm('Вы уверены? Пользователь будет удалён.')) return;
+    
+    const response = await authFetch(`${API_BASE}/users/${userId}`, {
+        method: 'DELETE'
+    });
+    
+    if (!response) return;
+    
+    if (response.ok || response.status === 204) {
+        showNotification('✅ Пользователь удалён', 'success');
+        loadAdminData();
+    } else {
+        const error = await response.json().catch(() => ({}));
+        showNotification(error.detail || 'Ошибка удаления', 'error');
+    }
+}
+
+// 🔥 Открытие модального окна редактирования
+function openEditModal(id, email, role) {
+    document.getElementById('editUserId').value = id;
+    document.getElementById('editUserEmail').value = email;
+    document.getElementById('editUserRole').value = role;
+    document.getElementById('editUserModal').style.display = 'block';
+}
+
+// 🔥 Сохранение изменений пользователя
+document.getElementById('editUserForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('editUserId').value;
+    const email = document.getElementById('editUserEmail').value;
+    const role = document.getElementById('editUserRole').value;
+    
+    const response = await authFetch(`${API_BASE}/users/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ email, role })
+    });
+    
+    if (!response) return;
+    
+    if (response.ok) {
+        showNotification('✅ Пользователь обновлён', 'success');
+        closeModal('editUserModal');
+        loadAdminData();
+    } else {
+        const error = await response.json().catch(() => ({}));
+        showNotification(error.detail || 'Ошибка обновления', 'error');
+    }
+});
+
+// 🔥 Поиск по таблице пользователей
+function filterUsers() {
+    const query = document.getElementById('userSearch')?.value.toLowerCase() || '';
+    const rows = document.querySelectorAll('#usersContainer tbody tr');
+    
+    rows.forEach(row => {
+        const email = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        row.style.display = email.includes(query) ? '' : 'none';
+    });
+}
+
+// 🔥 Вспомогательные функции
+function translateRole(role) {
+    const roles = {
+        'client': '👤 Клиент',
+        'engineer': '🔧 Инженер',
+        'manager': '👔 Менеджер',
+        'admin': '👑 Админ'
+    };
+    return roles[role] || role;
+}
+
+function translateStatus(status) {
+    const statuses = {
+        'new': '🆕 Новый',
+        'accepted': '✅ Принят',
+        'in_progress': '🔧 В работе',
+        'ready': '✨ Готов',
+        'shipped': '📦 Отправлен',
+        'delivered': '✅ Получен клиентом',
+        'cancelled': '❌ Отменен'
+    };
+    return statuses[status] || status;
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function showNotification(message, type = 'info') {
+    const el = document.getElementById('notification');
+    if (el) {
+        el.textContent = message;
+        el.className = `notification ${type} show`;
+        setTimeout(() => el.classList.remove('show'), 3000);
+    } else {
+        alert(`${type.toUpperCase()}: ${message}`);
+    }
+}
+
+// Закрытие модального окна при клике вне
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+
+// 🔥 Управление услугами
+document.getElementById('createServiceForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('serviceName').value;
+    const price = parseInt(document.getElementById('servicePrice').value);
+
+    const response = await authFetch(`${API_BASE}/services/`, {
+        method: 'POST',
+        body: JSON.stringify({ name, price })
+    });
+
+    if (response && response.ok) {
+        showNotification('✅ Услуга добавлена', 'success');
+        document.getElementById('createServiceForm').reset();
+        loadAdminData();
+    } else {
+        const data = await response?.json().catch(() => ({}));
+        showNotification(data.detail || 'Ошибка', 'error');
+    }
+});
+
+async function deleteService(serviceId) {
+    if (!confirm('Удалить эту услугу?')) return;
+    const response = await authFetch(`${API_BASE}/services/${serviceId}`, {
+        method: 'DELETE'
+    });
+    if (response && response.ok) {
+        showNotification('✅ Услуга удалена', 'success');
+        loadAdminData();
+    } else {
+        showNotification('Ошибка удаления', 'error');
+    }
+}
+
+function renderServices(services) {
+    const container = document.getElementById('servicesContainer');
+    if (!container) return;
+    container.innerHTML = services.map(s => `
+        <div class="service-item" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border:1px solid #ddd;border-radius:0.5rem;margin-bottom:0.5rem;">
+            <span>${s.name} - ${s.price}₽</span>
+            <button onclick="deleteService(${s.id})" class="btn-danger btn-sm">🗑️ Удалить</button>
+        </div>
+    `).join('');
+}
+
+// 🔥 Управление заказами
+function showCreateOrderModal() {
+    document.getElementById('createOrderModal').style.display = 'block';
+    loadClientsForSelect();
+    loadServicesForOrder();
+}
+
+async function loadClientsForSelect() {
+    const response = await authFetch(`${API_BASE}/users/`);
+    if (!response) return;
+    const users = await response.json();
+    const clients = users.filter(u => u.role === 'client');
+    const select = document.getElementById('orderClient');
+    select.innerHTML = clients.map(c => `<option value="${c.id}">${c.email}</option>`).join('');
+}
+
+async function loadServicesForOrder() {
+    const response = await fetch(`${API_BASE}/services/`);
+    if (!response.ok) return;
+    const services = await response.json();
+    const container = document.getElementById('orderServicesList');
+    container.innerHTML = services.map(s => `
+        <label class="checkbox-label" style="display:block;margin:0.25rem 0;">
+            <input type="checkbox" name="orderServices" value="${s.id}">
+            ${s.name} (${s.price}₽)
+        </label>
+    `).join('');
+}
+
+document.getElementById('createOrderForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const client_id = parseInt(document.getElementById('orderClient').value);
+    const description = document.getElementById('orderDescription').value;
+    const service_ids = Array.from(document.querySelectorAll('input[name="orderServices"]:checked'))
+        .map(cb => parseInt(cb.value));
+
+    if (service_ids.length === 0) {
+        showNotification('Выберите хотя бы одну услугу', 'error');
+        return;
+    }
+
+    const response = await authFetch(`${API_BASE}/orders/`, {
+        method: 'POST',
+        body: JSON.stringify({ client_id, description, service_ids })
+    });
+
+    if (response && response.ok) {
+        showNotification('✅ Заказ создан', 'success');
+        closeModal('createOrderModal');
+        loadAdminData();
+    } else {
+        const data = await response?.json().catch(() => ({}));
+        showNotification(data.detail || 'Ошибка', 'error');
+    }
+});
+
+async function deleteOrder(orderId) {
+    if (!confirm('Удалить этот заказ?')) return;
+    const response = await authFetch(`${API_BASE}/orders/${orderId}`, {
+        method: 'DELETE'
+    });
+    if (response && response.ok) {
+        showNotification('✅ Заказ удалён', 'success');
+        loadAdminData();
+    } else {
+        showNotification('Ошибка удаления', 'error');
+    }
+}
+
+// 👤 Назначение инженера
+function openAssignModal(orderId) {
+    document.getElementById('assignOrderId').value = orderId;
+    document.getElementById('assignEngineerModal').style.display = 'block';
+    loadEngineersForSelect();
+}
+
+async function loadEngineersForSelect() {
+    const response = await authFetch(`${API_BASE}/users/`);
+    if (!response) return;
+    const users = await response.json();
+    const engineers = users.filter(u => u.role === 'engineer');
+    const select = document.getElementById('assignEngineerId');
+    select.innerHTML = engineers.map(e => `<option value="${e.id}">${e.email}</option>`).join('');
+}
+
+document.getElementById('assignEngineerForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const orderId = document.getElementById('assignOrderId').value;
+    const engineer_id = parseInt(document.getElementById('assignEngineerId').value);
+
+    const response = await authFetch(`${API_BASE}/orders/${orderId}/assign`, {
+        method: 'PATCH',
+        body: JSON.stringify({ engineer_id })
+    });
+
+    if (response && response.ok) {
+        showNotification('✅ Инженер назначен', 'success');
+        closeModal('assignEngineerModal');
+        loadAdminData();
+    } else {
+        const data = await response?.json().catch(() => ({}));
+        showNotification(data.detail || 'Ошибка', 'error');
+    }
+});
+
+// � Изменение статуса заказа
+function openStatusModal(orderId, currentStatus) {
+    document.getElementById('statusOrderId').value = orderId;
+    document.getElementById('orderStatus').value = currentStatus;
+    document.getElementById('changeStatusModal').style.display = 'block';
+}
+
+document.getElementById('changeStatusForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const orderId = document.getElementById('statusOrderId').value;
+    const status = document.getElementById('orderStatus').value;
+
+    const response = await authFetch(`${API_BASE}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+    });
+
+    if (response && response.ok) {
+        showNotification('✅ Статус обновлён', 'success');
+        closeModal('changeStatusModal');
+        loadAdminData();
+    } else {
+        const data = await response?.json().catch(() => ({}));
+        showNotification(data.detail || 'Ошибка', 'error');
+    }
+});
+
+// �🔥 Инициализация
+window.addEventListener('load', () => {
+    console.log('🚀 Admin dashboard initialized');
+    loadAdminData();
+});
+</script>
+{% endblock %}

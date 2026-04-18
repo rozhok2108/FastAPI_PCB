@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет — PCB Order System{% endblock %}
+
+{% block content %}
+<!-- Навигация по разделам -->
+<div class="client-nav">
+    <button class="client-nav-btn active" onclick="showSection('orders')">📋 Мои заказы</button>
+    <button class="client-nav-btn" onclick="showSection('about')">🏢 О компании</button>
+    <button class="client-nav-btn" onclick="showSection('contacts')">📞 Контакты</button>
+</div>
+
+<!-- Секция: Мои заказы -->
+<div id="ordersSection" class="client-section active">
+    <div class="dashboard">
+        <h1>📋 Мои заказы</h1>
+
+        <div class="dashboard-actions">
+            <button onclick="showCreateOrderModal()" class="btn-primary">+ Новый заказ</button>
+            <button onclick="loadOrders()" class="btn-secondary">🔄 Обновить</button>
+        </div>
+
+        <div id="ordersContainer" class="orders-grid">
+            <!-- Заказы загружаются через JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Секция: О компании -->
+<div id="aboutSection" class="client-section">
+    <div class="dashboard about-company">
+        <h1>🏭 PCB Order System</h1>
+        <p class="company-subtitle">Профессиональное производство печатных плат любой сложности</p>
+
+        <div class="about-content">
+            <div class="about-text">
+                <h2>📖 О нашей компании</h2>
+                <p><strong>PCB Order System</strong> — ведущий производитель печатных плат с более чем 15-летним опытом работы. Мы специализируемся на производстве высококачественных печатных плат для различных отраслей промышленности.</p>
+                
+                <h3>🎯 Наши услуги:</h3>
+                <ul class="services-list">
+                    <li>🔬 <strong>Изготовление печатных плат</strong> — одно- и многослойные платы от 1 до 32 слоёв</li>
+                    <li>🖨️ <strong>Шелкография</strong> — нанесение маркировки на поверхность платы</li>
+                    <li>⚡ <strong>Пайка SMD компонентов</strong> — автоматический и ручной монтаж элементов</li>
+                    <li>🔍 <strong>Контроль качества</strong> — электрическое тестирование и визуальный контроль</li>
+                    <li>📦 <strong>Сборка электроники</strong> — полная сборка устройств под заказ</li>
+                </ul>
+
+                <h3>📊 Наши достижения:</h3>
+                <div class="achievements">
+                    <div class="achievement-item">
+                        <span class="achievement-number">15+</span>
+                        <span class="achievement-label">Лет на рынке</span>
+                    </div>
+                    <div class="achievement-item">
+                        <span class="achievement-number">5000+</span>
+                        <span class="achievement-label">Выполненных заказов</span>
+                    </div>
+                    <div class="achievement-item">
+                        <span class="achievement-number">200+</span>
+                        <span class="achievement-label">Довольных клиентов</span>
+                    </div>
+                    <div class="achievement-item">
+                        <span class="achievement-number">50+</span>
+                        <span class="achievement-label">Специалистов в команде</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-gallery">
+                <h2>📸 Наши производства</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="/static/images/производство_печатных плат.jpg" alt="Производство печатных плат">
+                        <p>Линия производства печатных плат</p>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/static/images/smd.png" alt="SMD монтаж">
+                        <p>Автоматический SMD монтаж</p>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/static/images/контроль_качества.jpg" alt="Контроль качества">
+                        <p>Отдел контроля качества</p>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/static/images/лаборатория.webp" alt="Лаборатория">
+                        <p>Исследовательская лаборатория</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-history">
+            <h2>📅 История компании</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">2009</div>
+                    <div class="timeline-content">Основание компании PCB Order System в Москве</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2012</div>
+                    <div class="timeline-content">Запуск первой производственной линии</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2015</div>
+                    <div class="timeline-content">Расширение ассортимента услуг — добавлена SMD пайка</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2018</div>
+                    <div class="timeline-content">Выход на международные рынки</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2023</div>
+                    <div class="timeline-content">Запуск онлайн-платформы для управления заказами</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2026</div>
+                    <div class="timeline-content">Более 5000 выполненных заказов и 200+ постоянных клиентов</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Секция: Контакты -->
+<div id="contactsSection" class="client-section">
+    <div class="dashboard contacts-page">
+        <h1>📞 Контакты</h1>
+
+        <div class="contacts-grid">
+            <div class="contact-card">
+                <div class="contact-icon">📍</div>
+                <h3>Адрес</h3>
+                <p>г. Москва, ул. Промышленная, д. 15<br>Бизнес-парк «Технополис», корпус 3</p>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">📞</div>
+                <h3>Телефон</h3>
+                <p><a href="tel:+74951234567">+7 (495) 123-45-67</a><br><a href="tel:+78001234567">8 (800) 123-45-67</a> (бесплатно)</p>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">✉️</div>
+                <h3>Email</h3>
+                <p><a href="mailto:info@pcb-order.ru">info@pcb-order.ru</a><br><a href="mailto:support@pcb-order.ru">support@pcb-order.ru</a></p>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">🕐</div>
+                <h3>Режим работы</h3>
+                <p>Пн — Пт: 9:00 — 18:00<br>Сб: 10:00 — 15:00<br>Вс: выходной</p>
+            </div>
+        </div>
+
+        <div class="contact-socials">
+            <h3>Мы в социальных сетях</h3>
+            <div class="social-links">
+                <a href="#" class="social-link telegram">📨 Telegram</a>
+                <a href="#" class="social-link whatsapp">📱 WhatsApp</a>
+                <a href="#" class="social-link vk">🌐 ВКонтакте</a>
+            </div>
+        </div>
+
+        <div class="contact-map">
+            <h3>🗺️ Как нас найти</h3>
+            <div class="map-placeholder">
+                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=400&fit=crop" alt="Карта">
+                <p class="map-note">Интерактивная карта доступна по запросу</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания заказа -->
+<div id="createOrderModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('createOrderModal')">&times;</span>
+        <h2>📦 Создать новый заказ</h2>
+        <form id="createOrderForm">
+            <div class="form-group">
+                <label for="description">Описание платы</label>
+                <textarea id="description" name="description" required placeholder="Опишите ваш заказ..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="services">Выберите услуги</label>
+                <div id="servicesList" class="services-checkbox">
+                    <!-- Услуги загружаются через JS -->
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Создать заказ</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Проверка валидности токена при загрузке
+async function validateToken() {
+    try {
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!response.ok) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_email');
+            window.location.href = '/login';
+        }
+    } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_email');
+        window.location.href = '/login';
+    }
+}
+
+// Вызываем проверку сразу
+validateToken();
+
+// Загрузка заказов
+async function loadOrders() {
+    try {
+        const response = await fetch('/api/orders/my', { credentials: 'include' });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const orders = await response.json();
+        renderOrders(orders);
+    } catch (error) {
+        showNotification('Ошибка загрузки заказов', 'error');
+    }
+}
+
+// Рендер заказов
+function renderOrders(orders) {
+    const container = document.getElementById('ordersContainer');
+    
+    if (orders.length === 0) {
+        container.innerHTML = '<p class="empty-state">У вас пока нет заказов</p>';
+        return;
+    }
+    
+    container.innerHTML = orders.map(order => `
+        <div class="order-card status-${order.status}">
+            <div class="order-header">
+                <h3>Заказ #${order.id}</h3>
+                <span class="status-badge">${translateStatus(order.status)}</span>
+            </div>
+            <p class="order-description">${order.description}</p>
+            <div class="order-meta">
+                <span>📅 ${new Date(order.created_at).toLocaleDateString()}</span>
+                <span>🔧 Услуги: ${order.service_ids?.length || 0}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Загрузка услуг
+async function loadServices() {
+    try {
+        const response = await fetch('/api/services/');
+        const services = await response.json();
+        
+        const servicesList = document.getElementById('servicesList');
+        servicesList.innerHTML = services.map(service => `
+            <label class="checkbox-label">
+                <input type="checkbox" name="services" value="${service.id}">
+                ${service.name} (${service.price}₽)
+            </label>
+        `).join('');
+    } catch (error) {
+        showNotification('Ошибка загрузки услуг', 'error');
+    }
+}
+
+// Создание заказа
+document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const description = document.getElementById('description').value;
+    const serviceIds = Array.from(document.querySelectorAll('input[name="services"]:checked'))
+        .map(cb => parseInt(cb.value));
+    
+    if (serviceIds.length === 0) {
+        showNotification('Выберите хотя бы одну услугу', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/orders/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ description, service_ids: serviceIds })
+        });
+        
+        if (response.ok) {
+            showNotification('Заказ создан!', 'success');
+            closeModal('createOrderModal');
+            loadOrders();
+        } else {
+            const data = await response.json();
+            showNotification(data.detail || 'Ошибка создания заказа', 'error');
+        }
+    } catch (error) {
+        showNotification('Ошибка подключения', 'error');
+    }
+});
+
+// Вспомогательные функции
+function translateStatus(status) {
+    const statuses = {
+        'new': '🆕 Новый',
+        'accepted': '✅ Принят',
+        'in_progress': '🔧 В работе',
+        'ready': '✨ Готов',
+        'shipped': '📦 Отправлен',
+        'delivered': '✅ Получен клиентом',
+        'cancelled': '❌ Отменен'
+    };
+    return statuses[status] || status;
+}
+
+function showSection(sectionName) {
+    // Скрываем все секции
+    document.querySelectorAll('.client-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.client-nav-btn').forEach(b => b.classList.remove('active'));
+    
+    // Показываем нужную
+    document.getElementById(sectionName + 'Section').classList.add('active');
+    
+    // Активируем кнопку
+    document.querySelectorAll('.client-nav-btn').forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(sectionName === 'orders' ? 'заказ' : sectionName === 'about' ? 'компани' : 'контакт')) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+function showCreateOrderModal() {
+    document.getElementById('createOrderModal').style.display = 'block';
+    loadServices();
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Инициализация
+window.addEventListener('load', loadOrders);
+
+// Закрытие модального окна при клике вне его
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
